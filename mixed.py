@@ -2,7 +2,7 @@ from ultralytics import YOLO
 import cv2
 import numpy as np
 
-pose_model = YOLO("yolov8n-pose.pt")
+pose_model = YOLO("skeleton.pt")
 apd_model = YOLO("best.pt")
 
 cap = cv2.VideoCapture(0)

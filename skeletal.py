@@ -3,7 +3,7 @@ from ultralytics import YOLO
 import torch
 
 # === Load Model Pose Detection ===
-model_pose = YOLO("yolov8n-pose.pt")  # Atau "bone.pt" kalau punya sendiri
+model_pose = YOLO("skeleton.pt")  
 
 # === Kamera ===
 cap = cv2.VideoCapture(0)

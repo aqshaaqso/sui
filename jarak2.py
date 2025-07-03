@@ -7,7 +7,7 @@ import numpy as np
 CAMERA_ID = 0
 CONFIDENCE_THRESHOLD = 0.5 
 
-POSE_MODEL_PATH = "yolov8n-pose.pt" 
+POSE_MODEL_PATH = "skeleton.pt" 
 WINDOW_NAME = "Deteksi Jarak Geometri (Tanpa MiDaS)"
 
 CALIBRATION_FACTOR_GEOMETRIC = 137.70
@@ -16,7 +16,6 @@ DISTANCE_FILTER_ENABLED = True
 MAX_DISTANCE_METERS = 5.2 
 
 # --- Konfigurasi Visualisasi ---
-# Index Keypoint COCO untuk bahu
 BOX_AND_TEXT_COLOR = (255, 0, 255) # Magenta / Pink Terang
 
 RIGHT_SHOULDER_IDX = 5
@@ -45,7 +44,6 @@ def initialize_camera(camera_id):
     return cap
 
 def process_frame_geometric(frame, model_pose):
-    # 1. Deteksi Pose menggunakan YOLO
     results_pose = model_pose(frame, verbose=False)[0]
     
     pixel_width_for_calibration = 0.0
@@ -78,13 +76,11 @@ def process_frame_geometric(frame, model_pose):
                     
                     if not DISTANCE_FILTER_ENABLED or distance_in_meters <= MAX_DISTANCE_METERS:
                         label_distance = f"Jarak: {distance_in_meters:.2f} m"
-                        
-                        # --- INI BAGIAN YANG DIPERBAIKI (LAGI) ---
+
                         # Ambil data kotak (bounding box) untuk orang ke-'i' dari 'results_pose.boxes'
                         box = results_pose.boxes[i]
                         x1, y1, x2, y2 = map(int, box.xyxy[0].cpu().numpy())
 
-                        # Gambar semua anotasi
                         # Gambar semua anotasi
                         cv2.rectangle(frame, (x1, y1), (x2, y2), BOX_AND_TEXT_COLOR, 2)
                         cv2.putText(frame, label_distance, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, BOX_AND_TEXT_COLOR, 2)

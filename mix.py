@@ -1,11 +1,9 @@
 import cv2
 from ultralytics import YOLO
 
-# === Load kedua model ===
-model_obj = YOLO("best.pt")             # Model object detection lo (APD atau lainnya)
-model_pose = YOLO("yolov8n-pose.pt")    # Model pose detection
+model_obj = YOLO("best.pt")            
+model_pose = YOLO("skeleton.pt")   
 
-# === Kamera ===
 cap = cv2.VideoCapture(0)
 if not cap.isOpened():
     print("❌ Gagal membuka kamera")
@@ -14,7 +12,6 @@ if not cap.isOpened():
 cv2.namedWindow("Detection", cv2.WINDOW_NORMAL)
 cv2.setWindowProperty("Detection", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
-# === Skeleton COCO Format ===
 skeleton = [
     (5, 7), (7, 9),
     (6, 8), (8, 10),
@@ -31,7 +28,6 @@ while True:
         print("❌ Gagal ambil frame")
         break
 
-    # === Object Detection ===
     results_obj = model_obj(frame)[0]
     for box in results_obj.boxes:
         cls_id = int(box.cls[0])
@@ -43,7 +39,6 @@ while True:
         cv2.putText(frame, f"{label} {conf:.2f}", (x1, y1 - 10),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
 
-    # === Pose Detection ===
     results_pose = model_pose(frame)[0]
     for kp in results_pose.keypoints:
         pts = kp.xy[0].cpu().numpy()
@@ -59,7 +54,6 @@ while True:
                 x2, y2 = int(pts[j][0]), int(pts[j][1])
                 cv2.line(frame, (x1, y1), (x2, y2), (0, 255, 255), 2)
 
-    # Tampilkan
     cv2.imshow("Detection", frame)
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break

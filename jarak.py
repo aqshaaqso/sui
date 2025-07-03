@@ -3,19 +3,16 @@ from ultralytics import YOLO
 import torch
 import numpy as np
 
-# --- Konfigurasi ---
 CAMERA_ID = 0
 CONFIDENCE_THRESHOLD = 0.5 
 
-POSE_MODEL_PATH = "yolov8n-pose.pt" 
+POSE_MODEL_PATH = "skeleton.pt" 
 WINDOW_NAME = "Deteksi Jarak Geometri (Tanpa MiDaS)"
 
 CALIBRATION_FACTOR_GEOMETRIC = 137.70
-# --- Konfigurasi Filter Jarak ---
 DISTANCE_FILTER_ENABLED = True
 MAX_DISTANCE_METERS = 5.2 
 
-# --- Konfigurasi Visualisasi ---
 BOX_AND_TEXT_COLOR = (255, 0, 255) # Magenta / Pink Terang
 
 RIGHT_SHOULDER_IDX = 5
@@ -48,44 +45,37 @@ def process_frame_geometric(frame, model_pose):
     
     pixel_width_for_calibration = 0.0
 
-    # Pastikan ada orang yang terdeteksi
     if results_pose.boxes and results_pose.keypoints:
-        # Loop untuk setiap orang yang terdeteksi, menggunakan index 'i'
+
         for i in range(len(results_pose.boxes)):
             
-            # Ambil data rangka (keypoints) untuk orang ke-'i'
+
             kp = results_pose.keypoints[i]
             if kp.conf is None or len(kp.conf) == 0: continue
 
             pts = kp.xy[0].cpu().numpy()
             confs = kp.conf[0].cpu().numpy()
 
-            # Pastikan kedua bahu terdeteksi dengan confidence yang cukup
+
             if confs[LEFT_SHOULDER_IDX] > CONFIDENCE_THRESHOLD and confs[RIGHT_SHOULDER_IDX] > CONFIDENCE_THRESHOLD:
-                # Ambil koordinat kedua bahu
                 left_shoulder_pt = pts[LEFT_SHOULDER_IDX]
                 right_shoulder_pt = pts[RIGHT_SHOULDER_IDX]
 
-                # Hitung jarak antar bahu dalam piksel
                 pixel_width = np.linalg.norm(left_shoulder_pt - right_shoulder_pt)
-                pixel_width_for_calibration = pixel_width # Simpan untuk mode kalibrasi
+                pixel_width_for_calibration = pixel_width 
 
                 if pixel_width > 0:
-                    # Hitung jarak menggunakan faktor kalibrasi
                     distance_in_meters = CALIBRATION_FACTOR_GEOMETRIC / pixel_width
                     
                     if not DISTANCE_FILTER_ENABLED or distance_in_meters <= MAX_DISTANCE_METERS:
                         label_distance = f"Jarak: {distance_in_meters:.2f} m"
 
-                        # Ambil data kotak (bounding box) untuk orang ke-'i' dari 'results_pose.boxes'
                         box = results_pose.boxes[i]
                         x1, y1, x2, y2 = map(int, box.xyxy[0].cpu().numpy())
 
-                        # Gambar semua anotasi
                         cv2.rectangle(frame, (x1, y1), (x2, y2), BOX_AND_TEXT_COLOR, 2)
                         cv2.putText(frame, label_distance, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, BOX_AND_TEXT_COLOR, 2)
                         
-                        # Gambar skeleton
                         for j, (x, y) in enumerate(pts):
                             if confs[j] > CONFIDENCE_THRESHOLD:
                                 cv2.circle(frame, (int(x), int(y)), KEYPOINT_CIRCLE_RADIUS, (255, 0, 0), -1)

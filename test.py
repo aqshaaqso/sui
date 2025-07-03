@@ -7,7 +7,7 @@ import pyrealsense2 as rs # Import library RealSense
 # --- Konfigurasi ---
 CAMERA_ID = 0 # Ini bisa tetap 0, tapi RealSense akan terdeteksi secara otomatis
 CONFIDENCE_THRESHOLD = 0.5 
-POSE_MODEL_PATH = "yolov8n-pose.pt" # Pastikan file model ini ada
+POSE_MODEL_PATH = "skeleton.pt" # Pastikan file model ini ada
 WINDOW_NAME = "Skeletal Pose & Accurate Depth Detection"
 
 # Konfigurasi Kamera RealSense (Disarankan)
